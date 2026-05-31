@@ -1,1 +1,1063 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Missão Real — Modelo Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #ADFF2F;
+    --green-dim: #7AB820;
+    --dark: #080C0A;
+    --dark2: #0D1210;
+    --dark3: #111A14;
+    --card: #131C16;
+    --border: rgba(173,255,47,0.15);
+    --border-bright: rgba(173,255,47,0.4);
+    --text: #E8F5E0;
+    --muted: #4A6352;
+    --white: #ffffff;
+  }
 
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed; width: 8px; height: 8px;
+    background: var(--green); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transition: transform 0.1s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    position: fixed; width: 32px; height: 32px;
+    border: 1px solid rgba(173,255,47,0.5);
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    transition: transform 0.15s, width 0.2s, height 0.2s, opacity 0.2s;
+  }
+
+  /* ── NOISE OVERLAY ─────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.4;
+  }
+
+  /* ── SECTIONS ──────────────────────────────────── */
+  section {
+    min-height: 100vh; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    padding: 80px 5vw;
+    z-index: 1;
+  }
+
+  /* ── HERO ──────────────────────────────────────── */
+  #hero {
+    flex-direction: column;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(173,255,47,0.06) 0%, transparent 70%);
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(173,255,47,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(173,255,47,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+
+  .tag {
+    display: inline-block;
+    border: 1px solid var(--border-bright);
+    color: var(--green);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; letter-spacing: 3px;
+    padding: 6px 16px; border-radius: 100px;
+    margin-bottom: 32px;
+    opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  h1.hero-title {
+    font-size: clamp(52px, 9vw, 110px);
+    font-weight: 800; line-height: 0.92;
+    letter-spacing: -3px;
+    opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  h1.hero-title em {
+    color: var(--green);
+    font-style: normal;
+  }
+
+  .hero-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(12px, 1.5vw, 15px);
+    color: var(--muted); margin-top: 28px;
+    letter-spacing: 1px;
+    opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 40px;
+    left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; color: var(--muted); letter-spacing: 2px;
+    opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
+  }
+
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(var(--green), transparent);
+    animation: scrollPulse 2s infinite;
+  }
+
+  /* ── TESE ──────────────────────────────────────── */
+  #tese {
+    flex-direction: column;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; letter-spacing: 4px;
+    color: var(--green); margin-bottom: 20px;
+    opacity: 0; transform: translateX(-20px);
+    transition: all 0.6s ease;
+  }
+
+  .section-label.visible { opacity: 1; transform: translateX(0); }
+
+  .tese-statement {
+    font-size: clamp(28px, 4vw, 56px);
+    font-weight: 700; line-height: 1.1;
+    max-width: 900px;
+    opacity: 0; transform: translateY(30px);
+    transition: all 0.8s 0.2s ease;
+  }
+
+  .tese-statement.visible { opacity: 1; transform: translateY(0); }
+
+  .tese-statement span {
+    color: var(--green);
+    position: relative;
+  }
+
+  .tese-statement span::after {
+    content: '';
+    position: absolute; bottom: 2px; left: 0; right: 0;
+    height: 3px; background: var(--green); opacity: 0.4;
+  }
+
+  .vs-strip {
+    display: flex; gap: 16px; margin-top: 60px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.8s 0.5s ease;
+  }
+  .vs-strip.visible { opacity: 1; transform: translateY(0); }
+
+  .vs-card {
+    flex: 1; min-width: 200px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card);
+    position: relative; overflow: hidden;
+  }
+
+  .vs-card.old { opacity: 0.5; }
+  .vs-card.old::after {
+    content: 'ATENÇÃO';
+    position: absolute; top: 12px; right: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px; letter-spacing: 2px;
+    color: var(--muted);
+    border: 1px solid var(--muted);
+    padding: 3px 8px; border-radius: 4px;
+  }
+
+  .vs-card.new {
+    border-color: var(--border-bright);
+    background: linear-gradient(135deg, #0F1C12, #141F16);
+  }
+
+  .vs-card.new::after {
+    content: 'AÇÃO';
+    position: absolute; top: 12px; right: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px; letter-spacing: 2px;
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 3px 8px; border-radius: 4px;
+  }
+
+  .vs-card-title {
+    font-size: 11px; letter-spacing: 2px;
+    color: var(--muted); margin-bottom: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .vs-card-items {
+    list-style: none;
+    font-size: 14px; line-height: 2;
+    color: var(--text);
+  }
+
+  /* ── MERCADO ───────────────────────────────────── */
+  #mercado { flex-direction: column; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 2px; width: 100%; max-width: 1100px;
+    opacity: 0; transform: translateY(40px);
+    transition: all 0.8s 0.3s ease;
+  }
+  .stats-grid.visible { opacity: 1; transform: translateY(0); }
+
+  .stat-block {
+    background: var(--card);
+    padding: 40px 28px;
+    border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    cursor: default;
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  .stat-block:hover {
+    border-color: var(--border-bright);
+    background: #141F16;
+  }
+
+  .stat-block::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    transform: scaleX(0);
+    transition: transform 0.4s;
+  }
+
+  .stat-block:hover::before { transform: scaleX(1); }
+
+  .stat-num {
+    font-size: clamp(36px, 4vw, 56px);
+    font-weight: 800; color: var(--green);
+    line-height: 1; display: block;
+  }
+
+  .stat-suffix {
+    font-size: 20px; color: var(--green-dim);
+    font-weight: 600;
+  }
+
+  .stat-desc {
+    font-size: 12px; color: var(--muted);
+    margin-top: 10px; line-height: 1.5;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .strategic-read {
+    max-width: 1100px; width: 100%;
+    margin-top: 2px;
+    background: linear-gradient(135deg, #0D1810, #0A130D);
+    border: 1px solid var(--border-bright);
+    padding: 28px 36px;
+    display: flex; align-items: center; gap: 24px;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.8s 0.6s ease;
+  }
+  .strategic-read.visible { opacity: 1; transform: translateY(0); }
+
+  .strategic-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 3px;
+    color: var(--green); white-space: nowrap;
+  }
+
+  .strategic-text {
+    font-size: clamp(13px, 1.5vw, 16px);
+    line-height: 1.6; color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ── MODELO FINANCEIRO ─────────────────────────── */
+  #financeiro { flex-direction: column; gap: 60px; padding-top: 120px; padding-bottom: 120px; }
+
+  .fin-header { text-align: center; }
+
+  .fin-title {
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 800; line-height: 0.95;
+    letter-spacing: -2px;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.8s ease;
+  }
+  .fin-title.visible { opacity: 1; transform: translateY(0); }
+
+  .scenarios {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; width: 100%; max-width: 1200px;
+  }
+
+  .scenario {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    position: relative; overflow: hidden;
+    cursor: default;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s;
+  }
+
+  .scenario.visible { opacity: 1; transform: translateY(0); }
+  .scenario:nth-child(1) { transition-delay: 0.1s; }
+  .scenario:nth-child(2) { transition-delay: 0.2s; }
+  .scenario:nth-child(3) { transition-delay: 0.3s; }
+  .scenario:nth-child(4) { transition-delay: 0.4s; }
+
+  .scenario:hover {
+    border-color: var(--border-bright);
+    background: #131E15;
+  }
+
+  .scenario.breakout {
+    border-color: rgba(173,255,47,0.35);
+    background: linear-gradient(160deg, #0F1E12, #0A1510);
+  }
+
+  .scenario-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 3px;
+    margin-bottom: 20px; display: block;
+  }
+
+  .scenario.breakout .scenario-tag { color: var(--green); }
+  .scenario:not(.breakout) .scenario-tag { color: var(--muted); }
+
+  .mau-value {
+    font-size: clamp(32px, 3vw, 48px);
+    font-weight: 800; line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .scenario.breakout .mau-value { color: var(--green); }
+  .scenario:not(.breakout) .mau-value { color: var(--text); }
+
+  .mau-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--muted); margin-bottom: 28px;
+    display: block;
+  }
+
+  .fin-divider {
+    width: 100%; height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  .fin-metric {
+    margin-bottom: 14px;
+  }
+
+  .fin-metric-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--muted); display: block; margin-bottom: 4px;
+  }
+
+  .fin-metric-value {
+    font-size: 18px; font-weight: 700;
+  }
+
+  .scenario.breakout .fin-metric-value { color: var(--green); }
+  .scenario:not(.breakout) .fin-metric-value { color: var(--text); }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin-top: 20px;
+    background: rgba(173,255,47,0.06);
+    border-radius: 100px; height: 4px; overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%; background: var(--green);
+    border-radius: 100px; width: 0;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .scenario.visible .progress-bar { width: var(--pct); }
+
+  /* ── PREMISSAS ─────────────────────────────────── */
+  .premissas-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2px; max-width: 1200px; width: 100%;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.8s 0.4s ease;
+  }
+  .premissas-grid.visible { opacity: 1; transform: translateY(0); }
+
+  .premissa {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+
+  .premissa-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--green);
+    min-width: 24px; margin-top: 2px;
+  }
+
+  .premissa-text {
+    font-size: 14px; line-height: 1.6;
+    color: var(--text);
+  }
+
+  .premissa-value {
+    font-weight: 700; color: var(--green);
+  }
+
+  /* ── VALUATION ─────────────────────────────────── */
+  #valuation { flex-direction: column; gap: 60px; }
+
+  .val-rows {
+    max-width: 900px; width: 100%;
+    opacity: 0; transform: translateY(30px);
+    transition: all 0.8s 0.2s ease;
+  }
+  .val-rows.visible { opacity: 1; transform: translateY(0); }
+
+  .val-row {
+    display: grid; grid-template-columns: 160px 1fr 200px;
+    align-items: center; gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .val-arr {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px; color: var(--green); font-weight: 700;
+  }
+
+  .val-bar-wrap {
+    background: rgba(173,255,47,0.06); height: 8px;
+    border-radius: 100px; overflow: hidden;
+  }
+
+  .val-bar {
+    height: 100%; background: linear-gradient(90deg, var(--green-dim), var(--green));
+    border-radius: 100px; width: 0;
+    transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .val-rows.visible .val-bar { width: var(--pct); }
+
+  .val-range {
+    font-size: 15px; font-weight: 700;
+    text-align: right; color: var(--text);
+  }
+
+  .buyers {
+    max-width: 900px; width: 100%;
+    opacity: 0; transform: translateY(30px);
+    transition: all 0.8s 0.5s ease;
+  }
+  .buyers.visible { opacity: 1; transform: translateY(0); }
+
+  .buyers-title {
+    font-size: 13px; letter-spacing: 3px;
+    color: var(--muted); margin-bottom: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .buyers-list {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+
+  .buyer-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 10px 18px; border-radius: 100px;
+    font-size: 13px; color: var(--text);
+    transition: border-color 0.2s, color 0.2s;
+    cursor: default;
+  }
+  .buyer-chip:hover { border-color: var(--border-bright); color: var(--green); }
+
+  .strategic-asset {
+    max-width: 900px; width: 100%;
+    background: linear-gradient(135deg, #0D1810, #0A130D);
+    border: 1px solid var(--border-bright);
+    padding: 32px 40px;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.8s 0.7s ease;
+  }
+  .strategic-asset.visible { opacity: 1; transform: translateY(0); }
+
+  .strategic-asset p {
+    font-size: clamp(16px, 2vw, 22px);
+    font-weight: 700; line-height: 1.5;
+    color: var(--green);
+  }
+
+  /* ── ROADMAP ───────────────────────────────────── */
+  #roadmap { flex-direction: column; gap: 60px; }
+
+  .timeline {
+    max-width: 900px; width: 100%;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute; left: 20px; top: 0; bottom: 0;
+    width: 1px; background: var(--border);
+  }
+
+  .timeline-item {
+    display: grid; grid-template-columns: 60px 1fr;
+    gap: 24px; margin-bottom: 40px;
+    opacity: 0; transform: translateX(-20px);
+    transition: all 0.6s ease;
+  }
+
+  .timeline-item.visible { opacity: 1; transform: translateX(0); }
+  .timeline-item:nth-child(1) { transition-delay: 0.1s; }
+  .timeline-item:nth-child(2) { transition-delay: 0.2s; }
+  .timeline-item:nth-child(3) { transition-delay: 0.3s; }
+  .timeline-item:nth-child(4) { transition-delay: 0.4s; }
+
+  .tl-dot {
+    width: 40px; height: 40px;
+    background: var(--green); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; font-weight: 700; color: var(--dark);
+    z-index: 1; position: relative;
+    flex-shrink: 0;
+  }
+
+  .tl-content {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 28px;
+  }
+
+  .tl-period {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 3px;
+    color: var(--green); margin-bottom: 8px; display: block;
+  }
+
+  .tl-name {
+    font-size: 20px; font-weight: 700; margin-bottom: 8px;
+  }
+
+  .tl-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.6;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── CODA ──────────────────────────────────────── */
+  #coda {
+    min-height: 60vh;
+    flex-direction: column; text-align: center;
+    background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(173,255,47,0.05) 0%, transparent 70%);
+  }
+
+  .coda-title {
+    font-size: clamp(28px, 5vw, 64px);
+    font-weight: 800; line-height: 1.0;
+    letter-spacing: -2px;
+    opacity: 0; transform: translateY(30px);
+    transition: all 0.8s ease;
+  }
+  .coda-title.visible { opacity: 1; transform: translateY(0); }
+
+  .coda-title em { color: var(--green); font-style: normal; }
+
+  .coda-mono {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(11px, 1.5vw, 14px);
+    color: var(--muted); margin-top: 24px;
+    letter-spacing: 1px;
+    opacity: 0; transition: all 0.8s 0.4s ease;
+  }
+  .coda-mono.visible { opacity: 1; }
+
+  /* ── NAV ───────────────────────────────────────── */
+  nav {
+    position: fixed; top: 24px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 4px;
+    background: rgba(8,12,10,0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 100px; padding: 6px 8px;
+    z-index: 100;
+  }
+
+  nav a {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 2px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 8px 14px; border-radius: 100px;
+    transition: color 0.2s, background 0.2s;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--dark); background: var(--green);
+  }
+
+  /* ── SECTION TITLES ────────────────────────────── */
+  .section-title {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 800; line-height: 0.95;
+    letter-spacing: -2px; margin-bottom: 8px;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.8s 0.1s ease;
+  }
+  .section-title.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── ANIMATIONS ────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .blink { animation: blink 1s infinite; }
+
+  /* ── COUNTER ANIMATION ─────────────────────────── */
+  .count-up { display: inline; }
+
+  /* ── RESPONSIVE ────────────────────────────────── */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .scenarios { grid-template-columns: repeat(2, 1fr); }
+    .premissas-grid { grid-template-columns: 1fr; }
+    nav { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .scenarios { grid-template-columns: 1fr; }
+    .val-row { grid-template-columns: 100px 1fr 140px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="#hero" class="active">INÍCIO</a>
+  <a href="#tese">TESE</a>
+  <a href="#mercado">MERCADO</a>
+  <a href="#financeiro">FINANCEIRO</a>
+  <a href="#valuation">VALUATION</a>
+  <a href="#roadmap">ROADMAP</a>
+</nav>
+
+<!-- ══ HERO ══════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <span class="tag">PITCH DECK — INVESTIDORES</span>
+  <h1 class="hero-title">missão<br><em>real</em></h1>
+  <p class="hero-sub">MODELO FINANCEIRO &amp; ESCALA&nbsp;&nbsp;/&nbsp;&nbsp;BRASIL 2025–2027</p>
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══ TESE ══════════════════════════════════════════ -->
+<section id="tese">
+  <div style="max-width:1100px;width:100%">
+    <div class="section-label">01 — TESE</div>
+    <h2 class="tese-statement">
+      Enquanto outras redes monetizam <span>atenção</span>,<br>
+      o Missão Real monetiza <span>ação</span>.
+    </h2>
+    <div class="vs-strip">
+      <div class="vs-card old">
+        <div class="vs-card-title">MODELO ANTIGO</div>
+        <ul class="vs-card-items">
+          <li>Tempo de tela</li>
+          <li>Impressões de anúncio</li>
+          <li>Algoritmo de feed</li>
+          <li>Criadores pagos por views</li>
+          <li>Renda incerta para a maioria</li>
+        </ul>
+      </div>
+      <div class="vs-card new">
+        <div class="vs-card-title">MISSÃO REAL</div>
+        <ul class="vs-card-items">
+          <li>Missões com pagamento protegido</li>
+          <li>Receita transacional por GMV</li>
+          <li>Reputação verificada</li>
+          <li>Real Players pagos por ação</li>
+          <li>Renda garantida + conteúdo</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MERCADO ════════════════════════════════════════ -->
+<section id="mercado">
+  <div style="max-width:1100px;width:100%;display:flex;flex-direction:column;gap:2px;align-items:flex-start">
+    <div class="section-label">02 — MERCADO</div>
+    <h2 class="section-title">Brasil digital<br>já está pronto.</h2>
+    <p style="color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;margin-bottom:32px;opacity:0;transition:all 0.8s 0.2s ease" class="section-sub">
+      O comportamento já existe. A oportunidade é adicionar a camada que falta.
+    </p>
+
+    <div class="stats-grid">
+      <div class="stat-block">
+        <span class="stat-num"><span class="count-up" data-target="185">0</span><span class="stat-suffix">M</span></span>
+        <p class="stat-desc">pessoas online<br>no Brasil (2025)</p>
+      </div>
+      <div class="stat-block">
+        <span class="stat-num"><span class="count-up" data-target="150">0</span><span class="stat-suffix">M</span></span>
+        <p class="stat-desc">identidades ativas<br>em redes sociais</p>
+      </div>
+      <div class="stat-block">
+        <span class="stat-num"><span class="count-up" data-target="147">0</span><span class="stat-suffix">M</span></span>
+        <p class="stat-desc">alcance de anúncios<br>do Instagram</p>
+      </div>
+      <div class="stat-block">
+        <span class="stat-num"><span class="count-up" data-target="131">0</span><span class="stat-suffix">M</span></span>
+        <p class="stat-desc">alcance adulto<br>do TikTok</p>
+      </div>
+    </div>
+
+    <div class="strategic-read">
+      <span class="strategic-label">LEITURA<br>ESTRATÉGICA</span>
+      <p class="strategic-text">O Missão Real não precisa competir com o hábito social. Ele usa esse hábito como aquisição e retenção, adicionando o componente que falta: <strong style="color:var(--green)">ação real monetizável.</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FINANCEIRO ════════════════════════════════════ -->
+<section id="financeiro">
+  <div class="fin-header" style="width:100%;max-width:1200px">
+    <div class="section-label">03 — MODELO FINANCEIRO</div>
+    <h2 class="fin-title section-title">Captura pequena.<br>Receita expressiva.</h2>
+  </div>
+
+  <div class="scenarios">
+    <div class="scenario" data-pct="15">
+      <span class="scenario-tag">CONSERVADOR</span>
+      <span class="mau-value">150k</span>
+      <span class="mau-label">MAU</span>
+      <div class="fin-divider"></div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">GMV / MÊS</span>
+        <span class="fin-metric-value">R$ 2,43M</span>
+      </div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">RECEITA / MÊS</span>
+        <span class="fin-metric-value">R$ 437k</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" style="--pct:15%"></div>
+      </div>
+    </div>
+
+    <div class="scenario" data-pct="38">
+      <span class="scenario-tag">BASE</span>
+      <span class="mau-value">375k</span>
+      <span class="mau-label">MAU</span>
+      <div class="fin-divider"></div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">GMV / MÊS</span>
+        <span class="fin-metric-value">R$ 6,08M</span>
+      </div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">RECEITA / MÊS</span>
+        <span class="fin-metric-value">R$ 1,09M</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" style="--pct:38%"></div>
+      </div>
+    </div>
+
+    <div class="scenario" data-pct="62">
+      <span class="scenario-tag">AGRESSIVO</span>
+      <span class="mau-value">750k</span>
+      <span class="mau-label">MAU</span>
+      <div class="fin-divider"></div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">GMV / MÊS</span>
+        <span class="fin-metric-value">R$ 12,15M</span>
+      </div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">RECEITA / MÊS</span>
+        <span class="fin-metric-value">R$ 2,19M</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" style="--pct:62%"></div>
+      </div>
+    </div>
+
+    <div class="scenario breakout" data-pct="100">
+      <span class="scenario-tag">★ BREAKOUT</span>
+      <span class="mau-value">1,5M</span>
+      <span class="mau-label">MAU</span>
+      <div class="fin-divider"></div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">GMV / MÊS</span>
+        <span class="fin-metric-value">R$ 24,30M</span>
+      </div>
+      <div class="fin-metric">
+        <span class="fin-metric-label">RECEITA / MÊS</span>
+        <span class="fin-metric-value">R$ 4,37M</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" style="--pct:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1200px;width:100%">
+    <div class="section-label" style="margin-bottom:16px">PREMISSAS DO CENÁRIO</div>
+    <div class="premissas-grid">
+      <div class="premissa">
+        <span class="premissa-num">01</span>
+        <span class="premissa-text">Base de <span class="premissa-value">150M</span> identidades sociais no Brasil</span>
+      </div>
+      <div class="premissa">
+        <span class="premissa-num">02</span>
+        <span class="premissa-text"><span class="premissa-value">20%</span> dos MAU fazem ao menos 1 missão/mês</span>
+      </div>
+      <div class="premissa">
+        <span class="premissa-num">03</span>
+        <span class="premissa-text"><span class="premissa-value">2,7</span> missões por transator por mês</span>
+      </div>
+      <div class="premissa">
+        <span class="premissa-num">04</span>
+        <span class="premissa-text">Ticket médio de <span class="premissa-value">R$ 60</span> por missão</span>
+      </div>
+      <div class="premissa">
+        <span class="premissa-num">05</span>
+        <span class="premissa-text">Take rate de <span class="premissa-value">18%</span> sobre o valor protegido</span>
+      </div>
+      <div class="premissa">
+        <span class="premissa-num">06</span>
+        <span class="premissa-text">Captura de <span class="premissa-value">0,10% a 1,0%</span> da base social brasileira</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ VALUATION ══════════════════════════════════════ -->
+<section id="valuation">
+  <div style="max-width:900px;width:100%;display:flex;flex-direction:column;gap:40px">
+    <div>
+      <div class="section-label">04 — VALUATION</div>
+      <h2 class="section-title">Potencial de<br>valor.</h2>
+    </div>
+
+    <div class="val-rows">
+      <div class="val-row">
+        <span class="val-arr">R$ 5M ARR</span>
+        <div class="val-bar-wrap"><div class="val-bar" style="--pct:25%"></div></div>
+        <span class="val-range">R$ 25M – 75M</span>
+      </div>
+      <div class="val-row">
+        <span class="val-arr">R$ 15M ARR</span>
+        <div class="val-bar-wrap"><div class="val-bar" style="--pct:55%"></div></div>
+        <span class="val-range">R$ 75M – 225M</span>
+      </div>
+      <div class="val-row">
+        <span class="val-arr">R$ 40M ARR</span>
+        <div class="val-bar-wrap"><div class="val-bar" style="--pct:100%"></div></div>
+        <span class="val-range">R$ 200M – 600M</span>
+      </div>
+      <p style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:16px;line-height:1.6">
+        Faixa usando múltiplos ilustrativos de 5x a 15x ARR.<br>
+        Multiplicador real depende de crescimento, margem, risco, defensibilidade e mercado.
+      </p>
+    </div>
+
+    <div class="buyers">
+      <p class="buyers-title">COMPRADORES ESTRATÉGICOS POSSÍVEIS</p>
+      <div class="buyers-list">
+        <span class="buyer-chip">Marketplaces &amp; apps de serviços</span>
+        <span class="buyer-chip">Fintechs &amp; carteiras digitais</span>
+        <span class="buyer-chip">Apps de mobilidade &amp; delivery</span>
+        <span class="buyer-chip">Redes sociais &amp; creator platforms</span>
+        <span class="buyer-chip">Eventos &amp; cuidado familiar</span>
+      </div>
+    </div>
+
+    <div class="strategic-asset">
+      <p>O ativo estratégico: uma rede social com transação real e dados de reputação/ações verificadas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ROADMAP ════════════════════════════════════════ -->
+<section id="roadmap">
+  <div style="max-width:900px;width:100%;display:flex;flex-direction:column;gap:40px">
+    <div>
+      <div class="section-label">05 — ROADMAP</div>
+      <h2 class="section-title">Construir rápido.<br>Validar com segurança.</h2>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="tl-dot">01</div>
+        <div class="tl-content">
+          <span class="tl-period">0–3 MESES</span>
+          <p class="tl-name">Protótipo + Lista de Espera</p>
+          <p class="tl-desc">Landing, fluxo de telas, captação de Real Players, primeiras missões manuais.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-dot">02</div>
+        <div class="tl-content">
+          <span class="tl-period">3–6 MESES</span>
+          <p class="tl-name">MVP Operacional</p>
+          <p class="tl-desc">Login, perfis, publicar missão, candidaturas, avaliações, feed básico, metas.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-dot">03</div>
+        <div class="tl-content">
+          <span class="tl-period">6–12 MESES</span>
+          <p class="tl-name">Pagamentos + Segurança</p>
+          <p class="tl-desc">Pagamento protegido, carteira/cofrinho, verificação de identidade, suporte e disputa.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-dot">04</div>
+        <div class="tl-content">
+          <span class="tl-period">12–24 MESES</span>
+          <p class="tl-name">Rede Social + Escala</p>
+          <p class="tl-desc">Vídeos, stories, ranking, premium, creator tools, expansão por cidades.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CODA ═══════════════════════════════════════════ -->
+<section id="coda">
+  <h2 class="coda-title">O app onde a vida real<br>vira <em>conteúdo, renda</em><br>e <em>reputação</em>.</h2>
+  <p class="coda-mono">missaoreal.app&nbsp;&nbsp;/&nbsp;&nbsp;DECK v1.0&nbsp;&nbsp;/&nbsp;&nbsp;2025<span class="blink">_</span></p>
+</section>
+
+<script>
+  // ── Cursor ─────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 4 + 'px';
+    cursor.style.top  = my - 4 + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx - 16 + 'px';
+    ring.style.top  = ry - 16 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // ── Nav active ─────────────────────────────────────
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(s => obs.observe(s));
+
+  // ── Scroll reveal ──────────────────────────────────
+  const reveals = document.querySelectorAll(
+    '.section-label, .tese-statement, .vs-strip, .stats-grid, .strategic-read, ' +
+    '.section-title, .section-sub, .fin-title, .scenario, .premissas-grid, ' +
+    '.val-rows, .buyers, .strategic-asset, .timeline-item, .coda-title, .coda-mono'
+  );
+
+  const revObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  reveals.forEach(el => revObs.observe(el));
+
+  // ── Counter animation ──────────────────────────────
+  function animCount(el) {
+    const target = parseInt(el.dataset.target);
+    const duration = 1600;
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(ease * target);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const counterObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.count-up').forEach(animCount);
+        counterObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.stats-grid').forEach(g => counterObs.observe(g));
+</script>
+</body>
+</html>
